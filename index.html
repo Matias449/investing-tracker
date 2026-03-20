@@ -33,9 +33,23 @@
     background: radial-gradient(ellipse, rgba(99,102,241,0.07) 0%, transparent 70%);
     pointer-events: none; z-index: 0;
   }
+
+  /* SYNC STATUS BAR */
+  .sync-bar {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 6px 16px; font-size: 9px; letter-spacing: 2px;
+    background: rgba(99,102,241,0.06); border-bottom: 1px solid rgba(99,102,241,0.1);
+    transition: all .3s;
+  }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--dimmer); flex-shrink: 0; }
+  .sync-bar.synced .sync-dot { background: var(--green); }
+  .sync-bar.syncing .sync-dot { background: var(--orange); animation: pulse 1s infinite; }
+  .sync-bar.error .sync-dot { background: var(--red); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
   .header {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 20px 16px 16px; border-bottom: 1px solid var(--border);
+    padding: 18px 16px 14px; border-bottom: 1px solid var(--border);
     position: sticky; top: 0; background: rgba(6,9,15,0.95);
     backdrop-filter: blur(12px); z-index: 10; flex-wrap: wrap; gap: 10px;
   }
@@ -44,8 +58,8 @@
   .header-btns { display: flex; gap: 8px; flex-wrap: wrap; }
   .btn-primary {
     padding: 9px 14px; background: var(--accent); border: none; color: #fff;
-    cursor: pointer; font-size: 10px; letter-spacing: 1px; font-family: var(--font); font-weight: 700;
-    border-radius: 2px; -webkit-tap-highlight-color: transparent;
+    cursor: pointer; font-size: 10px; letter-spacing: 1px; font-family: var(--font);
+    font-weight: 700; border-radius: 2px;
   }
   .btn-secondary {
     padding: 9px 14px; background: none; border: 1px solid rgba(99,102,241,0.3);
@@ -54,6 +68,7 @@
   }
   .btn-primary:active { background: #4f52e0; transform: scale(0.97); }
   .btn-secondary:active { background: rgba(99,102,241,0.1); transform: scale(0.97); }
+
   .hero-card {
     margin: 14px 14px 0; padding: 22px 18px;
     background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
@@ -61,18 +76,22 @@
   .hero-label { font-size: 8px; letter-spacing: 4px; color: var(--dim); margin-bottom: 6px; }
   .hero-value { font-size: 34px; font-weight: 700; letter-spacing: -1px; margin-bottom: 18px; }
   .hero-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 14px; }
-  .bar-capital { background: var(--capital); } .bar-gain { background: var(--green); } .bar-loss { background: var(--red); }
+  .bar-capital { background: var(--capital); }
+  .bar-gain   { background: var(--green); }
+  .bar-loss   { background: var(--red); }
   .hero-legend { display: flex; flex-direction: column; gap: 8px; }
   .legend-item { display: flex; align-items: center; gap: 8px; }
   .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .legend-label { font-size: 8px; letter-spacing: 3px; color: var(--dim); flex: 1; }
   .legend-val { font-size: 13px; font-weight: 700; }
+
   .week-pill {
     margin: 10px 14px 0; padding: 10px 14px; border: 1px solid;
     display: flex; justify-content: space-between; align-items: center;
     font-size: 13px; border-radius: 2px;
   }
   .week-pill-label { font-size: 8px; letter-spacing: 3px; color: var(--dim); }
+
   .chart-wrap {
     margin: 14px 14px 0; padding: 12px 12px 4px;
     background: rgba(255,255,255,0.015); border: 1px solid rgba(255,255,255,0.05); border-radius: 2px;
@@ -100,6 +119,7 @@
   }
   .del-btn.confirm { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.5); font-size: 9px; }
   .del-btn:active { transform: scale(0.95); }
+
   .overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.85);
     display: none; align-items: flex-end; justify-content: center;
@@ -125,6 +145,7 @@
   }
   .field-input:focus { border-color: rgba(99,102,241,0.5); }
   .orange { color: var(--orange); }
+
   .install-banner {
     margin: 14px 14px 0; padding: 12px 14px;
     background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2);
@@ -137,9 +158,36 @@
     flex-shrink: 0; border-radius: 2px;
   }
   #installBanner { display: none; }
+
+  .loading-screen {
+    position: fixed; inset: 0; background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 16px; z-index: 999;
+  }
+  .loading-logo { font-size: 32px; color: var(--accent); }
+  .loading-text { font-size: 9px; letter-spacing: 4px; color: var(--dimmer); }
+  .loading-spinner {
+    width: 24px; height: 24px; border: 2px solid rgba(99,102,241,0.2);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-logo">▲</div>
+  <div class="loading-spinner"></div>
+  <div class="loading-text">CONECTANDO…</div>
+</div>
+
+<!-- SYNC STATUS -->
+<div class="sync-bar syncing" id="syncBar">
+  <div class="sync-dot"></div>
+  <span id="syncText">sincronizando…</span>
+</div>
 
 <!-- INSTALL BANNER -->
 <div class="install-banner" id="installBanner">
@@ -151,7 +199,7 @@
 <div class="header">
   <div>
     <div class="title">INVERSIÓN</div>
-    <div class="subtitle" id="subtitle">tracker semanal · CLP</div>
+    <div class="subtitle">tracker semanal · CLP</div>
   </div>
   <div class="header-btns">
     <button class="btn-primary" onclick="openModal('registro')">+ REGISTRO</button>
@@ -162,22 +210,22 @@
 <!-- HERO -->
 <div class="hero-card">
   <div class="hero-label">VALOR ACTUAL</div>
-  <div class="hero-value" id="heroValue">$450.000</div>
+  <div class="hero-value" id="heroValue">—</div>
   <div class="hero-bar">
-    <div class="bar-capital" id="barCapital" style="flex:450000"></div>
-    <div class="bar-gain" id="barGain" style="flex:0;display:none"></div>
-    <div class="bar-loss" id="barLoss" style="flex:0;display:none"></div>
+    <div class="bar-capital" id="barCapital" style="flex:1"></div>
+    <div class="bar-gain"    id="barGain"    style="flex:0;display:none"></div>
+    <div class="bar-loss"    id="barLoss"    style="flex:0;display:none"></div>
   </div>
   <div class="hero-legend">
     <div class="legend-item">
       <span class="legend-dot" style="background:#334155"></span>
       <span class="legend-label">CAPITAL APORTADO</span>
-      <span class="legend-val" id="legendCapital">$450.000</span>
+      <span class="legend-val" id="legendCapital">—</span>
     </div>
     <div class="legend-item">
       <span class="legend-dot" id="gainDot" style="background:#22c55e"></span>
       <span class="legend-label">GANANCIA / PÉRDIDA</span>
-      <span class="legend-val" id="legendGain">$0 (+0.00%)</span>
+      <span class="legend-val" id="legendGain">—</span>
     </div>
   </div>
 </div>
@@ -197,7 +245,7 @@
 <!-- REGISTROS -->
 <div class="section">
   <div class="section-title">REGISTROS SEMANALES</div>
-  <div id="registrosList"><div class="empty">Cada lunes ingresa el valor actual de tu portafolio con "+ REGISTRO".</div></div>
+  <div id="registrosList"><div class="empty">Cargando…</div></div>
 </div>
 
 <!-- APORTES -->
@@ -250,130 +298,290 @@
   </div>
 </div>
 
-<script>
-const STORAGE_KEY = 'inversion_tracker_v1';
+<!-- FIREBASE SDK -->
+<script type="module">
+import { initializeApp }                          from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+// ── CONFIG ──────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyDDWXbwzavgWvhQfajvuofBjcXBuXXRU6g",
+  authDomain:        "investing-tracker-d324f.firebaseapp.com",
+  projectId:         "investing-tracker-d324f",
+  storageBucket:     "investing-tracker-d324f.firebasestorage.app",
+  messagingSenderId: "570382152883",
+  appId:             "1:570382152883:web:3cc249159939720615ecc6"
+};
+const PORTFOLIO_ID = "main"; // un solo documento, un solo portafolio
+// ────────────────────────────────────────────────────────
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+const ref = doc(db, "portfolios", PORTFOLIO_ID);
+
 const defaultData = {
   capitalAportado: 450000,
-  aportes: [{ id: 'a-1', fecha: new Date().toISOString().split('T')[0], monto: 450000, nota: 'Inversión inicial' }],
+  aportes: [{ id:"a-1", fecha: today(), monto: 450000, nota: "Inversión inicial" }],
   registros: []
 };
 
-let data = null, confirmDel = null, deferredPrompt = null;
+let data        = null;
+let confirmDel  = null;
+let deferredPrompt = null;
 
-// PWA install prompt
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault(); deferredPrompt = e;
-  document.getElementById('installBanner').style.display = 'flex';
-});
-window.addEventListener('appinstalled', () => {
-  document.getElementById('installBanner').style.display = 'none';
-});
-function installApp() {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(() => { deferredPrompt = null; document.getElementById('installBanner').style.display = 'none'; });
+// ── HELPERS ─────────────────────────────────────────────
+function today() { return new Date().toISOString().split("T")[0]; }
+function formatCLP(n) {
+  return new Intl.NumberFormat("es-CL",{style:"currency",currency:"CLP",maximumFractionDigits:0}).format(n);
 }
-
-// Service Worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js');
-}
-
-function load() {
-  try { const r = localStorage.getItem(STORAGE_KEY); data = r ? JSON.parse(r) : JSON.parse(JSON.stringify(defaultData)); }
-  catch { data = JSON.parse(JSON.stringify(defaultData)); }
-  render();
-}
-function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); render(); }
-function formatCLP(n) { return new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0}).format(n); }
-function formatPct(n) { return (n>=0?'+':'')+n.toFixed(2)+'%'; }
+function formatPct(n) { return (n>=0?"+":"")+n.toFixed(2)+"%"; }
 function getSemana(d) {
-  const dt = new Date(d+'T12:00:00'), s = new Date(dt.getFullYear(),0,1);
+  const dt = new Date(d+"T12:00:00"), s = new Date(dt.getFullYear(),0,1);
   return `Sem ${Math.ceil(((dt-s)/86400000+s.getDay()+1)/7)} · ${dt.getFullYear()}`;
 }
-function today() { return new Date().toISOString().split('T')[0]; }
 
-function openModal(t) {
+// ── SYNC STATUS ──────────────────────────────────────────
+function setSyncStatus(state, text) {
+  const bar = document.getElementById("syncBar");
+  bar.className = "sync-bar " + state;
+  document.getElementById("syncText").textContent = text;
+}
+
+// ── FIRESTORE SAVE ───────────────────────────────────────
+async function saveToFirestore(updated) {
+  data = updated;
+  setSyncStatus("syncing", "guardando…");
+  try {
+    await setDoc(ref, updated);
+    setSyncStatus("synced", "sincronizado ✓");
+  } catch(e) {
+    setSyncStatus("error", "error al guardar — revisa conexión");
+    console.error(e);
+  }
+  render();
+}
+
+// ── REALTIME LISTENER ────────────────────────────────────
+// onSnapshot escucha cambios en tiempo real desde cualquier dispositivo
+onSnapshot(ref,
+  (snap) => {
+    document.getElementById("loadingScreen").style.display = "none";
+    if (snap.exists()) {
+      data = snap.data();
+      setSyncStatus("synced", "sincronizado ✓");
+    } else {
+      // Primera vez: inicializar con datos por defecto
+      data = defaultData;
+      setDoc(ref, defaultData);
+      setSyncStatus("synced", "portafolio creado ✓");
+    }
+    render();
+  },
+  (err) => {
+    document.getElementById("loadingScreen").style.display = "none";
+    setSyncStatus("error", "sin conexión — datos locales");
+    console.error(err);
+    // Fallback a localStorage si Firestore falla
+    try {
+      const local = localStorage.getItem("inversion_tracker_v1");
+      data = local ? JSON.parse(local) : defaultData;
+    } catch { data = defaultData; }
+    render();
+  }
+);
+
+// ── MODALS ───────────────────────────────────────────────
+window.openModal = (t) => {
   confirmDel = null;
-  if (t==='registro') { document.getElementById('inputValor').value=''; document.getElementById('inputFechaReg').value=today(); document.getElementById('modalRegistro').classList.add('active'); setTimeout(()=>document.getElementById('inputValor').focus(),300); }
-  else { document.getElementById('inputMonto').value=''; document.getElementById('inputFechaAp').value=today(); document.getElementById('inputNota').value=''; document.getElementById('modalAporte').classList.add('active'); setTimeout(()=>document.getElementById('inputMonto').focus(),300); }
-}
-function closeModal(t) { document.getElementById(t==='registro'?'modalRegistro':'modalAporte').classList.remove('active'); }
+  if (t === "registro") {
+    document.getElementById("inputValor").value = "";
+    document.getElementById("inputFechaReg").value = today();
+    document.getElementById("modalRegistro").classList.add("active");
+    setTimeout(() => document.getElementById("inputValor").focus(), 300);
+  } else {
+    document.getElementById("inputMonto").value = "";
+    document.getElementById("inputFechaAp").value = today();
+    document.getElementById("inputNota").value = "";
+    document.getElementById("modalAporte").classList.add("active");
+    setTimeout(() => document.getElementById("inputMonto").focus(), 300);
+  }
+};
+window.closeModal = (t) => {
+  document.getElementById(t==="registro" ? "modalRegistro" : "modalAporte").classList.remove("active");
+};
 
-function addRegistro() {
-  const v = parseInt(document.getElementById('inputValor').value,10);
-  if (!v||v<=0) return;
-  const f = document.getElementById('inputFechaReg').value||today();
-  data.registros.unshift({id:'r-'+Date.now(),fecha:f,valor:v,semana:getSemana(f)});
-  closeModal('registro'); save();
-}
-function addAporte() {
-  const m = parseInt(document.getElementById('inputMonto').value,10);
-  if (!m||m<=0) return;
-  const f = document.getElementById('inputFechaAp').value||today();
-  data.capitalAportado += m;
-  data.aportes.unshift({id:'a-'+Date.now(),fecha:f,monto:m,nota:document.getElementById('inputNota').value||''});
-  closeModal('aporte'); save();
-}
-function deleteItem(type,id) {
-  if (!confirmDel||confirmDel.id!==id) { confirmDel={type,id}; render(); return; }
-  if (type==='registro') { data.registros=data.registros.filter(r=>r.id!==id); }
-  else { const a=data.aportes.find(a=>a.id===id); if(a) data.capitalAportado-=a.monto; data.aportes=data.aportes.filter(a=>a.id!==id); }
-  confirmDel=null; save();
-}
+// ── ADD REGISTRO ─────────────────────────────────────────
+window.addRegistro = () => {
+  const v = parseInt(document.getElementById("inputValor").value, 10);
+  if (!v || v <= 0) return;
+  const f = document.getElementById("inputFechaReg").value || today();
+  const updated = { ...data, registros: [{ id:"r-"+Date.now(), fecha:f, valor:v, semana:getSemana(f) }, ...data.registros] };
+  closeModal("registro");
+  saveToFirestore(updated);
+};
 
+// ── ADD APORTE ───────────────────────────────────────────
+window.addAporte = () => {
+  const m = parseInt(document.getElementById("inputMonto").value, 10);
+  if (!m || m <= 0) return;
+  const f = document.getElementById("inputFechaAp").value || today();
+  const nota = document.getElementById("inputNota").value || "";
+  const updated = {
+    ...data,
+    capitalAportado: data.capitalAportado + m,
+    aportes: [{ id:"a-"+Date.now(), fecha:f, monto:m, nota }, ...data.aportes]
+  };
+  closeModal("aporte");
+  saveToFirestore(updated);
+};
+
+// ── DELETE ───────────────────────────────────────────────
+window.deleteItem = (type, id) => {
+  if (!confirmDel || confirmDel.id !== id) { confirmDel = {type,id}; render(); return; }
+  let updated;
+  if (type === "registro") {
+    updated = { ...data, registros: data.registros.filter(r => r.id !== id) };
+  } else {
+    const a = data.aportes.find(a => a.id === id);
+    updated = { ...data, capitalAportado: data.capitalAportado - (a?.monto||0), aportes: data.aportes.filter(a => a.id !== id) };
+  }
+  confirmDel = null;
+  saveToFirestore(updated);
+};
+
+// ── CHART ────────────────────────────────────────────────
 function drawChart(regs, capital) {
-  const el=document.getElementById('chart'), W=600,H=130,PAD=12;
-  if (regs.length<2) { document.getElementById('chartWrap').style.display='none'; return; }
-  document.getElementById('chartWrap').style.display='block';
-  const vals=regs.map(r=>r.valor), labels=regs.map(r=>r.semana);
-  const min=Math.min(...vals,capital)*0.97, max=Math.max(...vals,capital)*1.03;
-  const x=i=>PAD+(i/(vals.length-1))*(W-PAD*2);
-  const y=v=>H-PAD-((v-min)/(max-min))*(H-PAD*2);
-  const pts=vals.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
-  const area=`${x(0)},${H} ${pts} ${x(vals.length-1)},${H}`;
-  const cY=y(capital), up=vals[vals.length-1]>=capital, col=up?'#22c55e':'#ef4444', gid='g'+Date.now();
-  el.innerHTML=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${col}" stop-opacity="0.2"/><stop offset="100%" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
+  const el = document.getElementById("chart");
+  if (regs.length < 2) { document.getElementById("chartWrap").style.display="none"; return; }
+  document.getElementById("chartWrap").style.display = "block";
+  const W=600, H=130, PAD=12;
+  const vals = regs.map(r=>r.valor), labels = regs.map(r=>r.semana);
+  const min = Math.min(...vals, capital)*0.97, max = Math.max(...vals, capital)*1.03;
+  const x = i => PAD + (i/(vals.length-1))*(W-PAD*2);
+  const y = v => H-PAD-((v-min)/(max-min))*(H-PAD*2);
+  const pts  = vals.map((v,i)=>`${x(i)},${y(v)}`).join(" ");
+  const area = `${x(0)},${H} ${pts} ${x(vals.length-1)},${H}`;
+  const cY   = y(capital);
+  const up   = vals[vals.length-1] >= capital;
+  const col  = up ? "#22c55e" : "#ef4444";
+  const gid  = "g"+Date.now();
+  el.innerHTML = `
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="${col}" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="${col}" stop-opacity="0"/>
+    </linearGradient></defs>
     <line x1="${PAD}" y1="${cY}" x2="${W-PAD}" y2="${cY}" stroke="#475569" stroke-width="1" stroke-dasharray="4 3"/>
     <text x="${W-PAD-2}" y="${cY-3}" fill="#475569" font-size="8" text-anchor="end" font-family="monospace">capital aportado</text>
     <polygon points="${area}" fill="url(#${gid})"/>
     <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>
-    ${vals.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="${col}"/>`).join('')}
+    ${vals.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="${col}"/>`).join("")}
     <text x="${x(0)}" y="${H-1}" fill="#475569" font-size="7" text-anchor="middle" font-family="monospace">${labels[0]}</text>
     <text x="${x(vals.length-1)}" y="${H-1}" fill="#475569" font-size="7" text-anchor="middle" font-family="monospace">${labels[labels.length-1]}</text>`;
 }
 
+// ── RENDER ───────────────────────────────────────────────
 function render() {
-  const va=data.registros.length>0?data.registros[0].valor:data.capitalAportado;
-  const g=va-data.capitalAportado, gp=(g/data.capitalAportado)*100, up=g>=0;
-  const prev=data.registros[1], cb=prev?va-prev.valor:null, cp=prev?(cb/prev.valor)*100:null;
+  if (!data) return;
+  const va  = data.registros.length > 0 ? data.registros[0].valor : data.capitalAportado;
+  const g   = va - data.capitalAportado;
+  const gp  = (g / data.capitalAportado) * 100;
+  const up  = g >= 0;
+  const prev = data.registros[1];
+  const cb  = prev ? va - prev.valor : null;
+  const cp  = prev ? (cb / prev.valor) * 100 : null;
 
-  document.getElementById('heroValue').textContent=formatCLP(va);
-  document.getElementById('legendCapital').textContent=formatCLP(data.capitalAportado);
-  document.getElementById('legendGain').textContent=(g>=0?'+':'')+formatCLP(g)+' ('+formatPct(gp)+')';
-  document.getElementById('legendGain').style.color=up?'#22c55e':'#ef4444';
-  document.getElementById('gainDot').style.background=up?'#22c55e':'#ef4444';
+  document.getElementById("heroValue").textContent    = formatCLP(va);
+  document.getElementById("legendCapital").textContent = formatCLP(data.capitalAportado);
+  document.getElementById("legendGain").textContent   = (g>=0?"+":"")+formatCLP(g)+" ("+formatPct(gp)+")";
+  document.getElementById("legendGain").style.color   = up ? "#22c55e" : "#ef4444";
+  document.getElementById("gainDot").style.background = up ? "#22c55e" : "#ef4444";
 
-  document.getElementById('barCapital').style.flex=data.capitalAportado;
-  if(g>0){document.getElementById('barGain').style.flex=g;document.getElementById('barGain').style.display='';document.getElementById('barLoss').style.display='none';}
-  else if(g<0){document.getElementById('barLoss').style.flex=Math.abs(g);document.getElementById('barLoss').style.display='';document.getElementById('barGain').style.display='none';}
-  else{document.getElementById('barGain').style.display='none';document.getElementById('barLoss').style.display='none';}
+  document.getElementById("barCapital").style.flex = data.capitalAportado;
+  if (g > 0) {
+    document.getElementById("barGain").style.flex = g;
+    document.getElementById("barGain").style.display = "";
+    document.getElementById("barLoss").style.display = "none";
+  } else if (g < 0) {
+    document.getElementById("barLoss").style.flex = Math.abs(g);
+    document.getElementById("barLoss").style.display = "";
+    document.getElementById("barGain").style.display = "none";
+  } else {
+    document.getElementById("barGain").style.display = "none";
+    document.getElementById("barLoss").style.display = "none";
+  }
 
-  const pill=document.getElementById('weekPill');
-  if(cb!==null){pill.style.display='flex';pill.style.borderColor=cb>=0?'rgba(34,197,94,0.3)':'rgba(239,68,68,0.3)';document.getElementById('weekPillVal').style.color=cb>=0?'#22c55e':'#ef4444';document.getElementById('weekPillVal').textContent=(cb>=0?'▲ ':'▼ ')+formatCLP(Math.abs(cb))+' ('+formatPct(cp)+')';}
-  else pill.style.display='none';
+  const pill = document.getElementById("weekPill");
+  if (cb !== null) {
+    pill.style.display = "flex";
+    pill.style.borderColor = cb>=0 ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)";
+    document.getElementById("weekPillVal").style.color = cb>=0 ? "#22c55e" : "#ef4444";
+    document.getElementById("weekPillVal").textContent = (cb>=0?"▲ ":"▼ ")+formatCLP(Math.abs(cb))+" ("+formatPct(cp)+")";
+  } else {
+    pill.style.display = "none";
+  }
 
   drawChart([...data.registros].reverse(), data.capitalAportado);
 
-  const rl=document.getElementById('registrosList');
-  if(data.registros.length===0){rl.innerHTML='<div class="empty">Cada lunes ingresa el valor actual de tu portafolio con "+ REGISTRO".</div>';}
-  else{rl.innerHTML=data.registros.map(r=>{const g=r.valor-data.capitalAportado,gp=(g/data.capitalAportado)*100,isDel=confirmDel&&confirmDel.id===r.id;return`<div class="row"><div class="row-left"><div class="row-date">${r.fecha} <span class="row-semana">${r.semana}</span></div><div class="row-value">${formatCLP(r.valor)}</div></div><div class="row-right"><span class="row-gain" style="color:${g>=0?'#22c55e':'#ef4444'}">${g>=0?'+':''}${formatCLP(g)} (${formatPct(gp)})</span><button class="del-btn ${isDel?'confirm':''}" onclick="deleteItem('registro','${r.id}')">${isDel?'¿seguro?':'✕'}</button></div></div>`;}).join('');}
+  // Registros
+  const rl = document.getElementById("registrosList");
+  if (data.registros.length === 0) {
+    rl.innerHTML = '<div class="empty">Cada lunes ingresa el valor actual de tu portafolio con "+ REGISTRO".</div>';
+  } else {
+    rl.innerHTML = data.registros.map(r => {
+      const rg = r.valor - data.capitalAportado;
+      const rp = (rg / data.capitalAportado) * 100;
+      const isDel = confirmDel && confirmDel.id === r.id;
+      return `<div class="row">
+        <div class="row-left">
+          <div class="row-date">${r.fecha} <span class="row-semana">${r.semana}</span></div>
+          <div class="row-value">${formatCLP(r.valor)}</div>
+        </div>
+        <div class="row-right">
+          <span class="row-gain" style="color:${rg>=0?"#22c55e":"#ef4444"}">${rg>=0?"+":""}${formatCLP(rg)} (${formatPct(rp)})</span>
+          <button class="del-btn ${isDel?"confirm":""}" onclick="deleteItem('registro','${r.id}')">${isDel?"¿seguro?":"✕"}</button>
+        </div>
+      </div>`;
+    }).join("");
+  }
 
-  document.getElementById('aportesList').innerHTML=data.aportes.map(a=>{const isDel=confirmDel&&confirmDel.id===a.id;return`<div class="row"><div class="row-left"><div class="row-date">${a.fecha}${a.nota?' — '+a.nota:''}</div><div class="row-value orange">${formatCLP(a.monto)}</div></div><button class="del-btn ${isDel?'confirm':''}" onclick="deleteItem('aporte','${a.id}')">${isDel?'¿seguro?':'✕'}</button></div>`;}).join('');
+  // Aportes
+  document.getElementById("aportesList").innerHTML = data.aportes.map(a => {
+    const isDel = confirmDel && confirmDel.id === a.id;
+    return `<div class="row">
+      <div class="row-left">
+        <div class="row-date">${a.fecha}${a.nota?" — "+a.nota:""}</div>
+        <div class="row-value orange">${formatCLP(a.monto)}</div>
+      </div>
+      <button class="del-btn ${isDel?"confirm":""}" onclick="deleteItem('aporte','${a.id}')">${isDel?"¿seguro?":"✕"}</button>
+    </div>`;
+  }).join("");
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal('registro');closeModal('aporte');}});
-load();
+// ── PWA INSTALL ──────────────────────────────────────────
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById("installBanner").style.display = "flex";
+});
+window.addEventListener("appinstalled", () => {
+  document.getElementById("installBanner").style.display = "none";
+});
+window.installApp = () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    deferredPrompt = null;
+    document.getElementById("installBanner").style.display = "none";
+  });
+};
+
+// ── SERVICE WORKER ───────────────────────────────────────
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js");
+}
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") { closeModal("registro"); closeModal("aporte"); }
+});
 </script>
 </body>
 </html>
