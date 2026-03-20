@@ -9,7 +9,7 @@
 ![License](https://img.shields.io/badge/license-MIT-fb923c?style=flat-square)
 ![Vanilla JS](https://img.shields.io/badge/vanilla-JS-f7df1e?style=flat-square&logo=javascript&logoColor=black)
 
-[**→ Abrir App**](https://Matias449.github.io/inversting-tracker/)
+[**→ Abrir App**](https://Matias449.github.io/investing-tracker/)
 
 </div>
 
